@@ -1,0 +1,9 @@
+[generators]
+cmake
+
+[requires]
+fmt/5.3.0@bincrafters/stable
+
+[options]
+
+[imports]
