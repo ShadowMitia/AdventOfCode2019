@@ -22,7 +22,7 @@ conan_check(REQUIRED)
 conan_add_remote(NAME bincrafters URL https://api.bintray.com/conan/bincrafters/public-conan)
 
 conan_cmake_run(CONANFILE conanfile.txt
-  BASIC_SETPU
+  BASIC_SETUP
   BUILD missing)
 
 if (!MSVC)
@@ -140,5 +140,7 @@ endif()
 ###
 
 add_executable(adventofcode2019-day1 src/day1.cpp)
+add_executable(adventofcode2019-day2 src/day2.cpp)
 
 target_link_libraries(adventofcode2019-day1 PRIVATE project_options project_warnings ${CONAN_LIBS})
+target_link_libraries(adventofcode2019-day2 PRIVATE project_options project_warnings ${CONAN_LIBS})
