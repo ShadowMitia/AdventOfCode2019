@@ -77,7 +77,7 @@ int main() {
 
   long unsigned int noun = 0;
   long unsigned int verb = 0;
-  
+
   constexpr int expectedOutput = 19690720;
 
   bool finished = false;

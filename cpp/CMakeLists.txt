@@ -141,6 +141,8 @@ endif()
 
 add_executable(adventofcode2019-day1 src/day1.cpp)
 add_executable(adventofcode2019-day2 src/day2.cpp)
+add_executable(adventofcode2019-day3 src/day3.cpp)
 
 target_link_libraries(adventofcode2019-day1 PRIVATE project_options project_warnings ${CONAN_LIBS})
 target_link_libraries(adventofcode2019-day2 PRIVATE project_options project_warnings ${CONAN_LIBS})
+target_link_libraries(adventofcode2019-day3 PRIVATE project_options project_warnings ${CONAN_LIBS})
