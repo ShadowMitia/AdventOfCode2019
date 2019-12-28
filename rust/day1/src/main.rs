@@ -16,13 +16,7 @@ fn total_fuel_required_for_module(module: i32) -> i32 {
     total
 }
 
-fn test_fuel_required_for_module(mass: i32, expected: i32) {
-    println!("for mass of {} expected {} got {}", mass, expected, fuel_required_for_module(mass));    
-}
 
-fn test_total_fuel_required_for_module(mass: i32, expected: i32) {
-    println!("for mass of {} expected {} got {}", mass, expected, fuel_required_for_module(mass));    
-}
 fn main() {
 
     let input: [i32; 100] = [
@@ -128,10 +122,6 @@ fn main() {
             123712,
     ];
 
-    test_fuel_required_for_module(12, 2);
-    test_fuel_required_for_module(14, 2);
-    test_fuel_required_for_module(1969, 654);
-    test_fuel_required_for_module(100756, 33583);
 
     let mut total_fuel = 0;
     for module in input.iter() {
@@ -140,9 +130,6 @@ fn main() {
 
     println!("Answer for day 1 part 1 {}", total_fuel);
 
-    test_total_fuel_required_for_module(14, 2);
-    test_total_fuel_required_for_module(1969, 966);
-    test_total_fuel_required_for_module(100756, 59346);
 
     total_fuel = 0;
     for module in input.iter() {
@@ -150,4 +137,36 @@ fn main() {
     }
 
     println!("Answer for day 1 part 2 {}", total_fuel);
+}
+
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+
+    fn test_fuel_required_for_module(mass: i32, expected: i32) {
+        println!("for mass of {} expected {} got {}", mass, expected, fuel_required_for_module(mass));
+        assert_eq!(expected, fuel_required_for_module(mass));
+    }
+
+    fn test_total_fuel_required_for_module(mass: i32, expected: i32) {
+        println!("for mass of {} expected {} got {}", mass, expected, total_fuel_required_for_module(mass));
+        assert_eq!(expected, total_fuel_required_for_module(mass));
+    }
+
+    #[test]
+    fn test_fuel() {
+        test_fuel_required_for_module(12, 2);
+        test_fuel_required_for_module(14, 2);
+        test_fuel_required_for_module(1969, 654);
+        test_fuel_required_for_module(100756, 33583);
+    }
+
+    #[test]
+    fn total_test_fuel() {
+        test_total_fuel_required_for_module(14, 2);
+        test_total_fuel_required_for_module(1969, 966);
+        test_total_fuel_required_for_module(100756, 50346);
+    }
 }
