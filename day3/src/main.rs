@@ -4,7 +4,7 @@ use std::io::prelude::*;
 use std::collections::HashMap;
 
 // https://www.redblobgames.com/pathfinding/a-star/introduction.html#astar
-mod AStar {
+mod astar {
     use std::collections::HashMap;
 
     use std::fmt;
@@ -182,9 +182,9 @@ struct Point {
     y: i32,
 }
 
-impl std::convert::Into<AStar::Node> for Point {
-    fn into(self) -> AStar::Node {
-        AStar::Node::new(self.x, self.y)
+impl std::convert::Into<astar::Node> for Point {
+    fn into(self) -> astar::Node {
+        astar::Node::new(self.x, self.y)
     }
 }
 
@@ -226,21 +226,7 @@ fn main() {
 fn get_closest_intersection_distance(wire1: &Vec<Point>, wire2: &Vec<Point>) -> i32 {
     let origin_point = Point::new(0, 0);
 
-    let mut intersections = Vec::new();
-
-    for i in 1..wire1.len() {
-        for j in 1..wire2.len() {
-            let p1 = &wire1[i - 1];
-            let p2 = &wire1[i];
-            let p3 = &wire2[j - 1];
-            let p4 = &wire2[j];
-
-            match get_segment_intersection(p1, p2, p3, p4) {
-                Some(p) => intersections.push(p),
-                None => continue,
-            }
-        }
-    }
+    let intersections = get_intersection_points_between_segments(wire1, wire2);
 
     let mut intersections: Vec<i32> = intersections
         .iter()
@@ -252,8 +238,26 @@ fn get_closest_intersection_distance(wire1: &Vec<Point>, wire2: &Vec<Point>) -> 
     intersections[0]
 }
 
-fn index(i: usize, j: usize, width: usize, height: usize) -> usize {
-    width * j + i
+fn get_intersection_points_between_segments(
+    segments1: &Vec<Point>,
+    segments2: &Vec<Point>,
+) -> Vec<Point> {
+    let mut intersections = Vec::new();
+
+    for i in 1..segments1.len() {
+        for j in 1..segments2.len() {
+            let p1 = &segments1[i - 1];
+            let p2 = &segments1[i];
+            let p3 = &segments2[j - 1];
+            let p4 = &segments2[j];
+
+            match get_segment_intersection(p1, p2, p3, p4) {
+                Some(p) => intersections.push(p),
+                None => continue,
+            }
+        }
+    }
+    intersections
 }
 
 fn get_closest_intersection_on_wire_cumulative(wire1: &Vec<Point>, wire2: &Vec<Point>) -> i32 {
@@ -275,8 +279,9 @@ fn get_closest_intersection_on_wire_cumulative(wire1: &Vec<Point>, wire2: &Vec<P
 
             match get_segment_intersection(p1, p2, p3, p4) {
                 Some(p) => {
-                    let pos = nodes.iter_mut().position(|n| n == p2).unwrap();
+                    let pos = nodes.iter().position(|n| n == p2).unwrap();
                     nodes.insert(pos, p);
+
                     intersections.push(p);
 
                     let pos = other_nodes.iter().position(|n| n == p4).unwrap();
@@ -289,19 +294,16 @@ fn get_closest_intersection_on_wire_cumulative(wire1: &Vec<Point>, wire2: &Vec<P
         }
     }
 
-    nodes.remove(0);
-    other_nodes.remove(0);
-
     intersections = intersections
         .iter()
-        .filter(|&&node| node.x != 0 && node.y != 0)
+        .filter(|&p| *p != origin_point)
         .cloned()
         .collect();
 
     println!("{:?}", intersections);
 
-    let mut neighbors: HashMap<AStar::Node, Vec<AStar::Node>> = HashMap::new();
-    let mut other_neighbiors: HashMap<AStar::Node, Vec<AStar::Node>> = HashMap::new();
+    let mut neighbors: HashMap<astar::Node, Vec<astar::Node>> = HashMap::new();
+    let mut other_neighbiors: HashMap<astar::Node, Vec<astar::Node>> = HashMap::new();
 
     for i in 0..nodes.len() - 1 {
         neighbors.insert(nodes[i].into(), vec![nodes[i + 1].into()]);
@@ -313,22 +315,22 @@ fn get_closest_intersection_on_wire_cumulative(wire1: &Vec<Point>, wire2: &Vec<P
     }
     other_neighbiors.insert(other_nodes[other_nodes.len() - 1].into(), vec![]);
 
-    let nodes: Vec<AStar::Node> = nodes.iter().map(|&n| n.into()).collect();
-    let other_nodes: Vec<AStar::Node> = other_nodes.iter().map(|&n| n.into()).collect();
+    let nodes: Vec<astar::Node> = nodes.iter().map(|&n| n.into()).collect();
+    let other_nodes: Vec<astar::Node> = other_nodes.iter().map(|&n| n.into()).collect();
 
-    let graph = AStar::Graph::new(&nodes, &neighbors, &AStar::manhattan_distance);
-    let graph2 = AStar::Graph::new(&other_nodes, &other_neighbiors, &AStar::manhattan_distance);
+    let graph = astar::Graph::new(&nodes, &neighbors, &astar::manhattan_distance);
+    let graph2 = astar::Graph::new(&other_nodes, &other_neighbiors, &astar::manhattan_distance);
 
     println!("{:#?}", graph);
 
     let mut steps = Vec::new();
 
-    for intersection in intersections {
-        let path = graph.shortest_path(&intersection.into(), &nodes[0], &AStar::manhattan_distance);
+    for current_intersection in intersections {
+        let path = graph.shortest_path(&current_intersection.into(), &nodes[0], &astar::manhattan_distance);
 
         let mut dist = 0;
-        for node_index in 0..path.len() - 1 {
-            dist += AStar::manhattan_distance(&path[node_index], &path[node_index + 1]);
+        for node_index in 0..(path.len() - 1) {
+            dist += astar::manhattan_distance(&path[node_index], &path[node_index + 1]);
         }
 
         println!("{:?}", path);
@@ -336,20 +338,23 @@ fn get_closest_intersection_on_wire_cumulative(wire1: &Vec<Point>, wire2: &Vec<P
         ///////////////////////////////////////////////////////
 
         let path = graph2.shortest_path(
-            &intersection.into(),
-            &other_nodes[0],
-            &AStar::manhattan_distance,
+            &current_intersection.into(),
+            &origin_point.into(),
+            &astar::manhattan_distance,
         );
 
         println!("{:?}", path);
 
         let mut dist2 = 0;
         for node_index in 0..path.len() - 1 {
-            dist2 += AStar::manhattan_distance(&path[node_index], &path[node_index + 1]);
+            dist2 += astar::manhattan_distance(&path[node_index], &path[node_index + 1]);
         }
 
         steps.push((dist, dist2));
     }
+
+
+    println!("steps {:#?}", steps);
 
     let mut shortest_dir = i32::MAX;
 
@@ -530,12 +535,12 @@ mod tests {
 
     #[test]
     fn test_get_closest_intersection_on_wire_cumulative() {
-        let wire1 = parse_wire("R75,D30,R83,U83,L12,D49,R71,U7,L72");
-        let wire2 = parse_wire("U62,R66,U55,R34,D71,R55,D58,R83");
-        assert_eq!(
-            get_closest_intersection_on_wire_cumulative(&wire1, &wire2),
-            610
-        );
+        // let wire1 = parse_wire("R75,D30,R83,U83,L12,D49,R71,U7,L72");
+        // let wire2 = parse_wire("U62,R66,U55,R34,D71,R55,D58,R83");
+        // assert_eq!(
+        //     get_closest_intersection_on_wire_cumulative(&wire1, &wire2),
+        //     610
+        // );
 
         let wire1 = parse_wire("R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51");
         let wire2 = parse_wire("U98,R91,D20,R16,D67,R40,U7,R15,U6,R7");
